@@ -29,6 +29,18 @@ def extrair(arquivo, destino):
     print(f"Extraído em: {destino}")
 
 
+def listar(arquivo):
+    if arquivo.endswith(".tar.gz"):
+        with tarfile.open(arquivo, "r:gz") as tf:
+            itens = [(m.name, m.size) for m in tf.getmembers() if m.isfile()]
+    else:
+        with zipfile.ZipFile(arquivo) as zf:
+            itens = [(i.filename, i.file_size) for i in zf.infolist() if not i.is_dir()]
+    for nome, tamanho in itens:
+        print(f"{tamanho:>10} bytes  {nome}")
+    print(f"\n{len(itens)} arquivo(s)")
+
+
 parser = argparse.ArgumentParser(description="Compactador simples (ZIP e TAR.GZ)")
 sub = parser.add_subparsers(dest="cmd", required=True)
 
@@ -40,8 +52,13 @@ e = sub.add_parser("extrair")
 e.add_argument("arquivo")
 e.add_argument("destino")
 
+l = sub.add_parser("listar")
+l.add_argument("arquivo")
+
 args = parser.parse_args()
 if args.cmd == "compactar":
     compactar(args.pasta, args.saida)
-else:
+elif args.cmd == "extrair":
     extrair(args.arquivo, args.destino)
+else:
+    listar(args.arquivo)
